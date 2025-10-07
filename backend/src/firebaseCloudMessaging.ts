@@ -7,9 +7,7 @@ import path from 'path/win32';
 export class FirebaseCloudMessaging {
   constructor(private configService: ConfigService) {
     const serviceAccountPath = path.join(__dirname,'..', 'src', 'vinutask-b0cc2-firebase-adminsdk-fbsvc-31cc927dbc.json');
-    console.log('Service Account Path:', serviceAccountPath);
     const serviceAccount = require(serviceAccountPath);
-    console.log('Service Account:', serviceAccount);
 
     if (!serviceAccount) {
       throw new Error('Firebase service account not found in environment variables');
@@ -63,7 +61,7 @@ export class FirebaseCloudMessaging {
   // Method to send notification for large transfers
   async sendTransferNotification(from: string, to: string, amount: number, hash: string, tokens: string[]) {
     const title = 'Large Transfer Detected';
-    const body = `${amount.toFixed(2)} tokens transferred from ${from.slice(0, 8)}...`;
+    const body = JSON.stringify({amount: amount, from: from, to: to, hash: hash});
     
     return this.sendNotification(title, body, tokens);
   }

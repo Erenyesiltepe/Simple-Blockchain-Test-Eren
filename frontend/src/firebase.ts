@@ -12,7 +12,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
+export const messaging = getMessaging(app);
 
 export const requestNotificationPermission = async () => {
   try {
@@ -69,12 +69,4 @@ export const requestNotificationPermission = async () => {
     console.error('Permission request error:', error);
     throw error;
   }
-};
-
-export const onMessageListener = () => {
-  return new Promise((resolve) => {
-    onMessage(messaging, (payload) => {
-      resolve(payload);
-    });
-  });
 };

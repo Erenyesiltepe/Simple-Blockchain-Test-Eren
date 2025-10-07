@@ -15,7 +15,8 @@ import {
   Alert
 } from '@mui/material'
 import NotificationsIcon from '@mui/icons-material/Notifications'
-import { requestNotificationPermission, onMessageListener } from './firebase'
+import { requestNotificationPermission, messaging } from './firebase'
+import { onMessage } from 'firebase/messaging';
 
 interface Notification {
   id: string;
@@ -32,32 +33,28 @@ function App() {
   const [notificationMessage, setNotificationMessage] = useState('')
 
   useEffect(() => {
-    // Request notification permission when component mounts
+
     requestNotificationPermission()
       .then(() => console.log('Notification permission granted'))
       .catch((err) => console.error('Error requesting notification permission:', err));
 
-    // Set up message listener
-    const unsubscribe = onMessageListener().then((payload: any) => {
-      const { from, to, amount, hash } = payload.data;
-      
-      const newNotification: Notification = {
-        id: hash,
-        from,
-        to,
-        amount: `${amount} USDT`,
-        hash,
-        timestamp: Date.now()
-      };
+    onMessage(messaging, (payload: any) => {
+        const { from, to, amount, hash } = JSON.parse(payload.notification.body);
 
-      setNotifications(prev => [newNotification, ...prev]);
-      setNotificationMessage(`New transfer: ${amount} USDT`);
-      setShowNotification(true);
+        const newNotification: Notification = {
+          id: hash,
+          from,
+          to,
+          amount: `${amount} USDT`,
+          hash,
+          timestamp: Date.now()
+        };
+
+        console.log('Received foreground message:', newNotification);
+        setNotifications(prev => [newNotification, ...prev]);
+        setNotificationMessage(`New transfer: ${amount} USDT`);
+        setShowNotification(true);
     });
-
-    return () => {
-      unsubscribe;
-    };
   }, [])
 
   return (

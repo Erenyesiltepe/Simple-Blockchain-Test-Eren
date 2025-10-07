@@ -1,28 +1,25 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
-import { InfuraProvider, Contract, EventLog } from "ethers";
+import { WebSocketProvider, Contract, EventLog } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import { FirebaseCloudMessaging } from './firebaseCloudMessaging';
 
 @Injectable()
 export class EtherJsHost implements OnModuleInit {
-  private provider: InfuraProvider;
+  private provider: WebSocketProvider;
   private contract: Contract;
   private deviceTokens: string[] = [];
-  //private tokenDecimals: number;
   
   private readonly contractAbi = [
-    "event Transfer(address indexed from, address indexed to, uint value)",
-    //"function decimals() view returns (uint8)"
+    "event Transfer(address indexed from, address indexed to, uint value)"
   ];
 
   constructor(
     private configService: ConfigService,
     private firebaseMessaging: FirebaseCloudMessaging
   ) {
-    this.provider = new InfuraProvider(
-      "mainnet", 
-      this.configService.get<string>('INFURA_API_KEY')
-    );
+    const infuraKey = this.configService.get<string>('INFURA_API_KEY');
+    const wsUrl = `wss://mainnet.infura.io/ws/v3/${infuraKey}`;
+    this.provider = new WebSocketProvider(wsUrl);
   }
 
   // Method to register a new device token
@@ -49,40 +46,36 @@ export class EtherJsHost implements OnModuleInit {
       this.contractAbi,
       this.provider
     );
-
-    // Get the token decimals first
-    // try {
-    //   this.tokenDecimals = await this.contract.decimals();
-    //   console.log(`Token decimals: ${this.tokenDecimals}`);
-    // } catch (error) {
-    //   console.error('Failed to get token decimals:', error);
-    //   this.tokenDecimals = 18; // fallback to standard ERC20 decimals
-    // }
-
     
-    this.contract.on("Transfer", async (from: string, to: string, value: bigint, event: EventLog) => {
+    this.contract.on("Transfer", async (from: string, to: string, value: bigint, event: any) => {
       try {
         const actualValue = Number(value) / 1e6;
-
-        // Send notification for large transfers (e.g., > 100,000 USDT)
-        if (actualValue > 100000) {
-          console.log({
-            event: 'Transfer',
-            from,
-            to,
-            actualValue: actualValue,
-            hash: event.transactionHash
+        
+        // Try multiple ways to get transaction hash
+         let transactionHash = event.log?.transactionHash;
+        
+        console.log('Transfer detected:', {
+          from,
+          to,
+          value: actualValue,
+          hash: transactionHash,
         });
+        
+        if (actualValue > 100000) {
           // Get the registered device tokens from your storage/service
-          const tokens = await this.getDeviceTokens(); // You'll need to implement this method
+          const tokens = await this.getDeviceTokens();
           
-          await this.firebaseMessaging.sendTransferNotification(
-            from,
-            to,
-            actualValue,
-            event.transactionHash,
-            tokens
-          );
+          if (tokens.length > 0 && transactionHash) {
+            await this.firebaseMessaging.sendTransferNotification(
+              from,
+              to,
+              actualValue,
+              transactionHash,
+              tokens
+            );
+          } else if (!transactionHash) {
+            console.error('Cannot send notification: transaction hash not available');
+          }
         }
       } catch (error) {
         console.error('Failed to process transfer event:', error);
