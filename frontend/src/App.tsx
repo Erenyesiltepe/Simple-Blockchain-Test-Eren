@@ -9,12 +9,9 @@ import {
   Card, 
   CardContent, 
   Box,
-  IconButton,
-  Badge,
   Snackbar,
   Alert
 } from '@mui/material'
-import NotificationsIcon from '@mui/icons-material/Notifications'
 import { requestNotificationPermission, messaging } from './firebase'
 import { onMessage } from 'firebase/messaging';
 
