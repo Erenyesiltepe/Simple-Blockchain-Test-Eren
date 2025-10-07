@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { EtherJsHost } from './etherJsHost';
+import { NotificationController } from './notification.controller';
+import { FirebaseCloudMessaging } from './firebaseCloudMessaging';
 
 @Module({
   imports: [
@@ -10,7 +12,7 @@ import { EtherJsHost } from './etherJsHost';
       isGlobal: true,
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService, EtherJsHost],
+  controllers: [AppController, NotificationController],
+  providers: [AppService, EtherJsHost, FirebaseCloudMessaging],
 })
 export class AppModule {}

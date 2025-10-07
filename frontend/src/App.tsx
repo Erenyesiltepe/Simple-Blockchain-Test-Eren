@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   AppBar, 
   Toolbar, 
@@ -10,29 +10,55 @@ import {
   CardContent, 
   Box,
   IconButton,
-  Badge
+  Badge,
+  Snackbar,
+  Alert
 } from '@mui/material'
 import NotificationsIcon from '@mui/icons-material/Notifications'
+import { requestNotificationPermission, onMessageListener } from './firebase'
 
-// Generate dummy data for better scroll testing
-const generateDummyData = (count: number) => {
-  const data = []
-  for (let i = 0; i < count; i++) {
-    data.push({
-      id: i + 1,
-      from: `0x${Math.random().toString(16).slice(2, 42)}`,
-      to: `0x${Math.random().toString(16).slice(2, 42)}`,
-      amount: `${(Math.random() * 5).toFixed(2)} ETH`,
-      hash: `0x${Math.random().toString(16).slice(2, 64)}`
-    })
-  }
-  return data
+interface Notification {
+  id: string;
+  from: string;
+  to: string;
+  amount: string;
+  hash: string;
+  timestamp: number;
 }
 
-const dummyNotifications = generateDummyData(15) // Generate 15 notifications for testing
-
 function App() {
-  const [notifications] = useState(dummyNotifications)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [showNotification, setShowNotification] = useState(false)
+  const [notificationMessage, setNotificationMessage] = useState('')
+
+  useEffect(() => {
+    // Request notification permission when component mounts
+    requestNotificationPermission()
+      .then(() => console.log('Notification permission granted'))
+      .catch((err) => console.error('Error requesting notification permission:', err));
+
+    // Set up message listener
+    const unsubscribe = onMessageListener().then((payload: any) => {
+      const { from, to, amount, hash } = payload.data;
+      
+      const newNotification: Notification = {
+        id: hash,
+        from,
+        to,
+        amount: `${amount} USDT`,
+        hash,
+        timestamp: Date.now()
+      };
+
+      setNotifications(prev => [newNotification, ...prev]);
+      setNotificationMessage(`New transfer: ${amount} USDT`);
+      setShowNotification(true);
+    });
+
+    return () => {
+      unsubscribe;
+    };
+  }, [])
 
   return (
     <Box sx={{ 
@@ -72,7 +98,7 @@ function App() {
         }}
       >
         <List sx={{ p: 0 }}>
-          {notifications.map((notification) => (
+          {notifications.sort((a, b) => b.timestamp - a.timestamp).map((notification) => (
             <ListItem key={notification.id} sx={{ mb: 2, p: 0 }}>
               <Card 
                 sx={{ 
@@ -148,6 +174,21 @@ function App() {
           ))}
         </List>
       </Container>
+
+      <Snackbar
+        open={showNotification}
+        autoHideDuration={6000}
+        onClose={() => setShowNotification(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setShowNotification(false)} 
+          severity="info" 
+          sx={{ width: '100%' }}
+        >
+          {notificationMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

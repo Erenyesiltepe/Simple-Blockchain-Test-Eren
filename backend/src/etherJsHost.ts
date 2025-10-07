@@ -1,11 +1,13 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { InfuraProvider, Contract, EventLog } from "ethers";
 import { ConfigService } from "@nestjs/config";
+import { FirebaseCloudMessaging } from './firebaseCloudMessaging';
 
 @Injectable()
 export class EtherJsHost implements OnModuleInit {
   private provider: InfuraProvider;
   private contract: Contract;
+  private deviceTokens: string[] = [];
   //private tokenDecimals: number;
   
   private readonly contractAbi = [
@@ -13,11 +15,26 @@ export class EtherJsHost implements OnModuleInit {
     //"function decimals() view returns (uint8)"
   ];
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private firebaseMessaging: FirebaseCloudMessaging
+  ) {
     this.provider = new InfuraProvider(
       "mainnet", 
       this.configService.get<string>('INFURA_API_KEY')
     );
+  }
+
+  // Method to register a new device token
+  async addDeviceToken(token: string) {
+    if (!this.deviceTokens.includes(token)) {
+      this.deviceTokens.push(token);
+    }
+  }
+
+  // Method to get all registered device tokens
+  private async getDeviceTokens(): Promise<string[]> {
+    return this.deviceTokens;
   }
 
   async onModuleInit() {
@@ -43,19 +60,33 @@ export class EtherJsHost implements OnModuleInit {
     // }
 
     
-    this.contract.on("Transfer", (from: string, to: string, value: bigint, event: EventLog) => {
-      try{
+    this.contract.on("Transfer", async (from: string, to: string, value: bigint, event: EventLog) => {
+      try {
         const actualValue = Number(value) / 1e6;
-        console.log({
+
+        // Send notification for large transfers (e.g., > 100,000 USDT)
+        if (actualValue > 100000) {
+          console.log({
             event: 'Transfer',
             from,
             to,
-            actualValue: actualValue
+            actualValue: actualValue,
+            hash: event.transactionHash
         });
+          // Get the registered device tokens from your storage/service
+          const tokens = await this.getDeviceTokens(); // You'll need to implement this method
+          
+          await this.firebaseMessaging.sendTransferNotification(
+            from,
+            to,
+            actualValue,
+            event.transactionHash,
+            tokens
+          );
+        }
       } catch (error) {
-        console.error('Failed to calculate actual value:', error);
+        console.error('Failed to process transfer event:', error);
       }
-      
     });
 
     console.log(`Started listening to contract: ${contractAddress}`);
