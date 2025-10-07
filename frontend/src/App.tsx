@@ -42,11 +42,11 @@ function App() {
         const { from, to, amount, hash } = JSON.parse(payload.notification.body);
 
         const newNotification: Notification = {
-          id: hash,
+          id: `${hash || 'unknown'}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           from,
           to,
           amount: `${amount} USDT`,
-          hash,
+          hash: hash || 'unknown',
           timestamp: Date.now()
         };
 
@@ -61,6 +61,7 @@ function App() {
     <Box sx={{ 
       bgcolor: '#f5f5f5',
       minHeight: '100vh',
+      width: '100vw',
       display: 'flex',
       flexDirection: 'column',
     }}>
@@ -78,11 +79,6 @@ function App() {
           >
             Blockchain Transaction Notifications
           </Typography>
-          <IconButton color="inherit" sx={{ mr: { sm: 8 } }}>
-            <Badge badgeContent={notifications.length} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
         </Toolbar>
       </AppBar>
       
