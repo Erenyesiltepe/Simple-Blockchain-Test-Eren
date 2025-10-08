@@ -61,11 +61,6 @@ A real-time blockchain monitoring system that tracks USDT (Tether) transfers on 
 
 ### 4. Update Configuration Files
 
-#### Backend Configuration
-
-1) Rename created firebase private key to firebase_credential.json and place under backend/src folder.
-2) Update the infura API key in backend/.env file
-
 #### Frontend Service Worker (`frontend/public/firebase-messaging-sw.js`)
 Update the Firebase config object:
 ```javascript
