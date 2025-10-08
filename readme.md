@@ -114,3 +114,15 @@ The backend will run on `http://localhost:8000`
 - Store sensitive credentials in secure vaults
 - Never commit private keys to version control
 - Use Firebase service account keys with minimal required permissions
+
+## 🌐 Browser Compatibility
+
+### ✅ **Fully Supported**
+- **Microsoft Edge**: Tested and working perfectly
+
+### ⚠️ **Known Issues**
+- **Brave Browser**: Firebase Cloud Messaging may not work due to aggressive privacy features
+
+#### Brave Browser Troubleshooting:
+**Issue**: Push notifications don't work despite granting permissions.
+

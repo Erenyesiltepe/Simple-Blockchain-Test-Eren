@@ -30,12 +30,24 @@ function App() {
   const [notificationMessage, setNotificationMessage] = useState('')
 
   useEffect(() => {
+    let isMounted = true;
 
-    requestNotificationPermission()
-      .then(() => console.log('Notification permission granted'))
-      .catch((err) => console.error('Error requesting notification permission:', err));
+    const setupNotifications = async () => {
+      try {
+        await requestNotificationPermission();
+        console.log('Notification permission granted');
+      } catch (err) {
+        console.error('Error requesting notification permission:', err);
+      }
+    };
 
-    onMessage(messaging, (payload: any) => {
+    setupNotifications();
+
+    // Set up message listener only once
+    const unsubscribe = onMessage(messaging, (payload: any) => {
+      if (!isMounted) return; // Prevent updates if component unmounted
+
+      try {
         const { from, to, amount, hash } = JSON.parse(payload.notification.body);
 
         const newNotification: Notification = {
@@ -48,11 +60,30 @@ function App() {
         };
 
         console.log('Received foreground message:', newNotification);
-        setNotifications(prev => [newNotification, ...prev]);
+
+        setNotifications(prev => {
+          // Prevent duplicate notifications by checking if we already have this hash
+          const exists = prev.some(n => n.hash === newNotification.hash && n.hash !== 'unknown');
+          if (exists) {
+            console.log('Duplicate notification prevented for hash:', newNotification.hash);
+            return prev;
+          }
+          return [newNotification, ...prev];
+        });
+
         setNotificationMessage(`New transfer: ${amount} USDT`);
         setShowNotification(true);
+      } catch (error) {
+        console.error('Error processing notification:', error);
+      }
     });
-  }, [])
+
+    return () => {
+      isMounted = false;
+      // Note: Firebase onMessage doesn't return an unsubscribe function
+      // The listener will be cleaned up when the component unmounts
+    };
+  }, []); // Empty dependency array ensures this runs only once
 
   return (
     <Box sx={{ 

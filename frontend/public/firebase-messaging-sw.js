@@ -12,16 +12,15 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages
+// Handle background messages - only show system notification, don't duplicate UI updates
 messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message:', payload);
+  console.log('Received background message (system notification only):', payload);
 
   const notificationTitle = payload.notification.title;
   const notificationBody = JSON.parse(payload.notification.body);
   const notificationOptions = {
-    body: `Amount: ${notificationBody.amount}, From: ${notificationBody.from}, To: ${notificationBody.to}`,
-    icon: '/vite.svg', // You can replace this with your own icon
-    data: payload.data
+    body: `Amount: ${notificationBody.amount} USDT, From: ${notificationBody.from}, To: ${notificationBody.to}`,
+    icon: '/vite.svg',
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
