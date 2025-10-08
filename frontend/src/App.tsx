@@ -43,8 +43,7 @@ function App() {
 
     setupNotifications();
 
-    // Set up message listener only once
-    const unsubscribe = onMessage(messaging, (payload: any) => {
+    onMessage(messaging, (payload: any) => {
       if (!isMounted) return; // Prevent updates if component unmounted
 
       try {
@@ -80,10 +79,8 @@ function App() {
 
     return () => {
       isMounted = false;
-      // Note: Firebase onMessage doesn't return an unsubscribe function
-      // The listener will be cleaned up when the component unmounts
     };
-  }, []); // Empty dependency array ensures this runs only once
+  }, []); 
 
   return (
     <Box sx={{ 

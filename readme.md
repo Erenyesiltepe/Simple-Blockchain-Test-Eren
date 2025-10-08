@@ -39,7 +39,60 @@ A real-time blockchain monitoring system that tracks USDT (Tether) transfers on 
 - **Firebase Project** with Cloud Messaging enabled
 - **Infura Account** with WebSocket access
 
-## 🔧 Installation
+## � Firebase Setup
+
+### 1. Create Firebase Project
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project or select existing one
+3. Enable **Cloud Messaging** in the project
+
+### 2. Generate Service Account Key (Backend)
+1. In Firebase Console, go to **Project Settings** → **Service Accounts**
+2. Click **Generate new private key**
+3. Download the JSON file
+4. **Rename** the file to `firebase_credential.json`
+5. **Place** it in `backend/src/` folder
+
+### 3. Get Firebase Configuration (Frontend)
+1. In Firebase Console, go to **Project Settings** → **General**
+2. Scroll down to **Your apps** section
+3. Click **Add app** → **Web app** (if not already created)
+4. Copy the Firebase configuration object
+
+### 4. Update Configuration Files
+
+#### Backend Configuration
+
+1) Rename created firebase private key to firebase_credential.json and place under backend/src folder.
+2) Update the infura API key in backend/.env file
+
+#### Frontend Service Worker (`frontend/public/firebase-messaging-sw.js`)
+Update the Firebase config object:
+```javascript
+const firebaseConfig = {
+  apiKey: "your_api_key",
+  authDomain: "your_project.firebaseapp.com",
+  projectId: "your_project_id",
+  storageBucket: "your_project.appspot.com",
+  messagingSenderId: "your_sender_id",
+  appId: "your_app_id"
+};
+```
+
+#### Frontend App (`frontend/src/firebase.ts`)
+Update the Firebase config object:
+```typescript
+const firebaseConfig = {
+  apiKey: "your_api_key",
+  authDomain: "your_project.firebaseapp.com",
+  projectId: "your_project_id",
+  storageBucket: "your_project.appspot.com",
+  messagingSenderId: "your_sender_id",
+  appId: "your_app_id"
+};
+```
+
+## �🔧 Installation
 
 ### Frontend Setup
 

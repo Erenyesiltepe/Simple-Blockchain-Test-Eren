@@ -6,7 +6,7 @@ import path from 'path/win32';
 @Injectable()
 export class FirebaseCloudMessaging {
   constructor(private configService: ConfigService) {
-    const serviceAccountPath = path.join(__dirname,'..', 'src', 'vinutask-b0cc2-firebase-adminsdk-fbsvc-31cc927dbc.json');
+    const serviceAccountPath = path.join(__dirname,'..', 'src', 'firebase_credential.json');
     const serviceAccount = require(serviceAccountPath);
 
     if (!serviceAccount) {
