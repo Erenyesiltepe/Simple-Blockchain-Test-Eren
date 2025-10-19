@@ -1,4 +1,4 @@
-# Vinu Digital Task - USDT Transfer Monitoring System
+# USDT Transfer Monitoring System
 
 A real-time blockchain monitoring system that tracks USDT (Tether) transfers on the Ethereum network and sends push notifications for large transactions.
 
